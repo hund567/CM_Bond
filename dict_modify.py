@@ -176,6 +176,6 @@ def modify_single_index(index):
         print(e.args[0], e.args[1])
     cursor.close()
     conn.close()
-    print "this is just a test"
+    print "this is just a test,not a big deal"
 if __name__ == '__main__':
     modify_dict()
