@@ -18,7 +18,7 @@ db_name = 'guanc'
 
 def crawl():
     print "time"
-
+    print "this shit"
 if __name__ == '__main__':
     crawl()
 
