@@ -2,8 +2,8 @@
 import pandas as pd
 import numpy as np
 from pandas import Series, DataFrame
-from WindPy import w
-w.start()
+# from WindPy import w
+# w.start()
 import matplotlib.pyplot as plt
 plt.rcParams['font.sans-serif']=['SimHei']
 import datetime as dt
@@ -51,7 +51,7 @@ def filename2date(filename):
         return date_str
 
 def find_new_file():
-    file = os.listdir(r'C:\Users\Administrator\Desktop\招行债券自营\data_csv')
+    file = os.listdir("C:\Users\Administrator\Desktop\data_csv")
     existing_file = pd.read_excel('existing_file_store.xlsx', index_col=0)
     existing_file.iloc[:,0].tolist()
     pd.Series(file).to_excel('existing_file_store.xlsx')
@@ -92,7 +92,8 @@ def name2df_trans_bond(filename):
 
     # 计算出日度收盘收益率变化（bp），并提取债券类型，将无债券类型的设定为“其他”
     data['change'] = 100 * (data.close_yield - data.close_yield_last)
-    data['bond_type'] = w.wss(list(data.code), "windl2type").Data[0]
+    # data['bond_type'] = w.wss(list(data.code), "windl2type").Data[0]
+    data['bond_type'] = "其他"
     data.bond_type.fillna(value='其他', inplace=True)
 
     return data
