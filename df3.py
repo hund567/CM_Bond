@@ -66,7 +66,7 @@ def data_preprocessing(file, filename):
             return name, [df_rates, df_types, df_genres]
     else:
         name = '现券市场总结表'
-        print np.where(file.iloc[:, 0].isna())[0][1]
+        print np.where(file.iloc[:, 0].isna())[0]
         loc = np.where(file.iloc[:, 0].isna())[0][1]
         df_market = file.iloc[loc: -1,].copy().reset_index(drop = True)
         df_market.iloc[0, 0] = '机构类型'
@@ -120,5 +120,5 @@ db_name = 'guanc'
 print files[1]
 df = import_data(path, files[1])
 name, l = data_preprocessing(df, files[1])
-import2sql(usr, passwd, host, l, db_name, name)
-update2sql(usr, passwd, host, l, db_name, name)
+import2sql(usr, password, host, l, db_name, name)
+update2sql(usr, password, host, l, db_name, name)
