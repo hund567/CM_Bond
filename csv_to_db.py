@@ -237,7 +237,10 @@ def name2df_IB(filename, dataset):
         return data
 
 if __name__ == '__main__':
-    a =find_new_file()
-    print a
+    # a =find_new_file()
+    file = os.listdir("C:\Users\Administrator\Desktop\data_csv")
+    for each in file:
+        print each.decode(encoding="gb2312", errors="strict")
+
 
 
