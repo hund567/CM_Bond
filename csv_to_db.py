@@ -15,6 +15,14 @@ import os
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
+pd.set_option('display.max_columns',None)
+from sqlalchemy import create_engine
+from sqlalchemy.types import NVARCHAR, Float, Integer
+#数据库的全局变量
+user = 'super'
+password = 'Password123'
+db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
+db_name = 'guanc'
 
 #这个函数就是对表头重命名
 def double2Chn(name,value = 1):
@@ -34,9 +42,7 @@ def double2Chn(name,value = 1):
 
 
 def filename2date(filename):
-    '''
-    输入带日期数字的单个文件名或者列表，输出相应日期/数字
-    '''
+    # 输入带日期数字的单个文件名或者列表，输出相应日期/数字
     pattern = re.compile(r'\d{8}')
 
     if isinstance(filename, list):
@@ -51,7 +57,7 @@ def filename2date(filename):
         return date_str
 
 def find_new_file():
-    file = os.listdir("C:\Users\Administrator\Desktop\data_csv")
+    file = os.listdir("/Users/hund567/Desktop/code_pycharm/CMB_BOND")
     existing_file = pd.read_excel('existing_file_store.xlsx', index_col=0)
     existing_file.iloc[:,0].tolist()
     pd.Series(file).to_excel('existing_file_store.xlsx')
@@ -103,7 +109,7 @@ def name2df_net_incr_bond(filename):
     '''
     输入excel名称列表，输出整理完毕的dataframe供拼接
     '''
-    data = pd.read_excel('C:\\Users\\Joyce Lin\\CFETS\\{filename}', sheet_name=2, skiprows=4, nrows=120,
+    data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=4, nrows=120,
                          index_col=[0, 1], column_col=[0, 1])
     time = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
 
@@ -147,21 +153,29 @@ def name2df_net_incr_bond(filename):
     data = data.sort_index(level=0)
     data = data.sort_index(level=1)
     data = data.sort_index(level=2)
+    # 下面开始将数据写到数据库中
+    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
+    # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
+    table_name = "net_incr_bond"
+    check_time = dateutil.parser.parse(filename2date(filename)).date()
+    sql = "select * from " + table_name + " where 日期=\"" + str(check_time) + "\""
+    check_result = engine.execute(sql).rowcount
+    if check_result != 0:
+        print "this data has already been inserted"
+    else:
+        repo_insert_db(data, table_name)
 
-    return data
 
 #回购
 def name2df_repo(filename, dataset):
     time = dateutil.parser.parse(str(filename2date(filename))).date()
     if dataset == 1:
-        data = pd.read_excel('C:\\Users\\Joyce Lin\\CFETS\\{filename}', sheet_name=0, skiprows=0, nrows=6,
+        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=0, nrows=6,
                              usecols=[1, 2, 3, 4, 5, 6, 7],
                              index_col=[0, 1], column_col=[0, 1, 2])
         data = data.replace('-', 0)
-
         data = data.reset_index(level=1)
-
-        data = data.iloc[1:, :]
+        data = data.iloc[1:, :6]
         data.columns = ['城市商业银行', '农村金融机构', '股份制商业银行', '基金公司及产品', '其他产品类', '其他']
         data = data.set_index([[time] * 5, data.index], drop=False)
 
@@ -174,25 +188,29 @@ def name2df_repo(filename, dataset):
             if series.dtype == 'object':
                 data[column] = data[column].astype(np.float64)
 
-        # data = data.reset_index(level=1)
-        # data = data.iloc[1:, :]
-        return data
 
     elif dataset == 2:
-        data = pd.read_excel('C:\\Users\\Joyce Lin\\CFETS\\{filename}', sheet_name=0, skiprows=8, nrows=99,
+        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=8, nrows=99,
                              usecols=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], index_col=[0, 1], column_col=[0])
         data = data.replace('-', 0)
         data = data.set_index([[time] * len(data), data.index], drop=False)
-
-        return data
-
+        data.index.names = ['日期', '机构类型', '期限品种']
     else:
-        data = pd.read_excel('C:\\Users\\Joyce Lin\\CFETS\\{filename}', sheet_name=0, skiprows=110, nrows=27,
+        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=110, nrows=27,
                              usecols=[0, 1, 2, 3, 4, 5], index_col=[0, 1], column_col=[0])
         data = data.replace('-', 0)
         data = data.set_index([[time] * len(data), data.index], drop=False)
-
-        return data
+        data.index.names = ['日期','机构类型', '债券类型']
+    #下面开始将数据写到数据库中
+    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
+    # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
+    table_name = "repo_" + str(dataset)
+    sql = "select * from "+table_name+" where 日期=\"" + str(time)+"\""
+    check_result = engine.execute(sql).rowcount
+    if check_result != 0 :
+        print "this data has already been inserted"
+    else:
+        repo_insert_db(data, table_name)
 
 #银行间
 def name2df_IB(filename, dataset):
@@ -236,11 +254,42 @@ def name2df_IB(filename, dataset):
 
         return data
 
+
+
+def repo_insert_db(df, table_name):
+
+    #将dataframe以指定tablename导入sql的特定数据库中（数据库需存在，不能创建）。
+    def mapping_df_types(df):
+        dtypedict = {}
+        for i, j in zip(df.columns, df.dtypes):
+            if "object" in str(j):
+                dtypedict.update({i: NVARCHAR(length=255)})
+            if "float" in str(j):
+                dtypedict.update({i: Float(precision=2, asdecimal=True)})
+            if "int" in str(j):
+                dtypedict.update({i: Integer()})
+        return dtypedict
+
+    dtypedict = mapping_df_types(df)
+
+    engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+"/"+db_name, encoding='utf-8')
+    try:
+        df.to_sql(table_name, con=engine, index=True, dtype=dtypedict, if_exists='append')
+        print "update successful"
+    except:
+        print "Error to inert,see the detail"
+
+
+
 if __name__ == '__main__':
     # a =find_new_file()
-    file = os.listdir("C:\Users\Administrator\Desktop\data_csv")
-    for each in file:
-        print each.decode(encoding="gb2312", errors="strict")
-
+    filename_list = os.listdir("/Users/hund567/Desktop/code_pycharm/CMB_BOND/data")
+    for each in filename_list:
+        # if "质押" in each:
+        #     for i in range(1,4):
+        #         print i
+        #         name2df_repo(each,i)
+        if "现券" in each:
+            name2df_net_incr_bond(each)
 
 
