@@ -71,11 +71,11 @@ def name2df_trans_bond(filename):
     输入四位月日日期，输出成交热度表
     '''
     # 将中文名称翻译为英文，形成重命名词典
-    code_name_match = {'债券代码': 'code', '债券名称': 'name', '待偿期': 'maturity', '开盘净价': 'open_clean', '最高净价': 'high_clean',
-                       '最低净价': 'low_clean', '收盘净价': 'close_clean', '加权平均净价': 'wa_clean', '前收盘净价': 'close_clean_last',
-                       '前加权平均净价': 'wa_clean_last', '开盘收益率': 'open_yield', '最高收益率': 'high_yield', '最低收益率': 'low_yield',
-                       '收盘收益率': 'close_yield', '加权平均收益率': 'wa_yield', '前收盘收益率': 'close_yield_last',
-                       '前加权平均收益率': 'wa_yield_last', '成交量': 'volume', '涨跌幅': 'change_pct', '收益率涨跌': 'change_yield'}
+    code_name_match = {u'债券代码': u'code', u'债券名称': u'name', u'待偿期': u'maturity', u'开盘净价': u'open_clean', u'最高净价': u'high_clean',
+                       u'最低净价': u'low_clean', u'收盘净价': u'close_clean', u'加权平均净价': u'wa_clean', u'前收盘净价': u'close_clean_last',
+                       u'前加权平均净价': u'wa_clean_last', u'开盘收益率': u'open_yield', u'最高收益率': u'high_yield', u'最低收益率': u'low_yield',
+                       u'收盘收益率': u'close_yield', u'加权平均收益率': u'wa_yield', u'前收盘收益率': u'close_yield_last',
+                       u'前加权平均收益率': u'wa_yield_last', u'成交量': u'volume', u'涨跌幅': u'change_pct', u'收益率涨跌': u'change_yield'}
 
     # 从excel中取数，重命名，将无数据的单元格设定为零
     # filename = f'现券清洗收盘行情报表_2020{month_n_date}.csv'
@@ -109,61 +109,58 @@ def name2df_net_incr_bond(filename):
     '''
     输入excel名称列表，输出整理完毕的dataframe供拼接
     '''
-    data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=4, nrows=120,
-                         index_col=[0, 1], column_col=[0, 1])
-    time = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
+    for sheet_num in range(0,3):
+        labels=[u"buy",u"sell",u"net"]
+        label = labels[sheet_num]
+        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=sheet_num, skiprows=4, nrows=120,
+                             index_col=[0, 1], column_col=[0, 1])
+        time = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
 
-    data = data.set_index([time, data.index], drop=False)
-    data.index.names = ['日期', '机构', '期限']
-    data = data.replace('-', 0)
+        data = data.set_index([time, data.index], drop=False)
+        data.index.names = [u'日期', u'机构', u'期限']
+        data = data.replace('-', 0)
+        dic = {u'大型商业银行/政策性银行\n（Large Commercial Banks/Policy Banks）': u'大行和政策行', u'理财类产品\n（Wealth management products）': u'理财',
+               u'其他产品类\n（else products）': u'其他产品类', u'城市商业银行\n（Urban Commercial Bank）': u'城商行',
+               u'农村金融机构\n（Rural financial institutions）': u'农村金融机构', u'股份制商业银行\n（Joint Stock Commercial Bank）': u'股份行',
+               u'证券公司\n（Securities companies ）': u'券商', u'保险公司\n（The insurance company）': u'保险公司',
+               u'基金公司及产品\n（Fund companies and products）': u'基金及产品', u'境外机构\n（Foreign institutions）': u'境外机构',
+               u'其他\n(Others)': u'其他', u'外资银行\n（Foreign banks）': u'外资银行', u'5-7年\n（5~7Y）': u'5-7Y', u'1-3年\n（1~3Y）': u'1-3Y',
+               u'7-10年\n（7~10Y）': u'7-10Y', u'合计\n(Total)': u'合计', u'1年及1年以下\n（Less then 1Y，including 1Y）': u'0-1Y',
+               u'15-20年\n（15~20Y）': u'15-20Y', u'20-30年\n（20~30Y）': u'20-30Y', u'30年以上\n（More then 30Y）': u'30Y+',
+               u'3-5年\n（3~5Y）': u'3-5Y',
+               u'10-15年\n（10~15Y）': u'10-15Y', u'政策性金融债-老债\n(Policy Financial Bond-old bond)': u'政策性金融债-老债',
+               u'国债-老债\n（Treasury Bond-old bond）': u'国债-老债', u'地方政府债\n（Local Goverment Bond）': u'地方债',
+               u'中期票据\n（Medium-term Note）': u'中票', u'短期/超短期融资券\n(Short-term Commercial Paper)': u'短融',
+               u'国债-新债\n（Treasury Bond-new bond）': u'国债-新债', u'企业债\n（Corporate Bond）': u'企业债',
+               u'政策性金融债-新债\n(Policy Financial Bond-new bond)': u'政策性金融债-新债', u'同业存单\n（CDs）': u'同业存单',
+               u'其他\n（Others）': u'其他', u'资产支持证券\n（Asset-bakced Security）': u'ABS',
+               u'国债-老债\n（Treasury Bond Off-the-Run）': u'国债-老债',u'国债-新债\n（Treasury Bond On-the-Run）': u'国债-新债',
+               u'政策性金融债-新债\n(Policy Financial Bond On-the-Run)':u'政策性金融债-新债',
+               u'政策性金融债-老债\n(Policy Financial Bond Off-the-Run)':u'政策性金融债-老债'
 
-    # dic1 = double2Chn(data.index.get_level_values(0),value = 0)
-    # dic2 = double2Chn(data.index.get_level_values(1))
-    # dic3 = double2Chn(data.columns,value = 0)
+               }
 
-    # dic1.update(dic2)
-    # dic1.update(dic3)
-    # dic = dic1
+        data.rename(index=dic, level=1, inplace=True)
+        data.rename(index=dic, level=2, inplace=True)
+        data.rename(columns=dic, inplace=True)
+        data["交易类型"] = label
+        data = data.replace('—', 0)
+        data = data.sort_index(level=0)
+        data = data.sort_index(level=1)
+        data = data.sort_index(level=2)
 
-    # for column, series in data.items() :
-    #    data[column] = float(data[column])
-
-    dic = {'大型商业银行/政策性银行\n（Large Commercial Banks/Policy Banks）': '大行和政策行', '理财类产品\n（Wealth management products）': '理财',
-           '其他产品类\n（else products）': '其他产品类', '城市商业银行\n（Urban Commercial Bank）': '城商行',
-           '农村金融机构\n（Rural financial institutions）': '农村金融机构', '股份制商业银行\n（Joint Stock Commercial Bank）': '股份行',
-           '证券公司\n（Securities companies ）': '券商', '保险公司\n（The insurance company）': '保险公司',
-           '基金公司及产品\n（Fund companies and products）': '基金及产品', '境外机构\n（Foreign institutions）': '境外机构',
-           '其他\n(Others)': '其他', '外资银行\n（Foreign banks）': '外资银行', '5-7年\n（5~7Y）': '5-7Y', '1-3年\n（1~3Y）': '1-3Y',
-           '7-10年\n（7~10Y）': '7-10Y', '合计\n(Total)': '合计', '1年及1年以下\n（Less then 1Y，including 1Y）': '0-1Y',
-           '15-20年\n（15~20Y）': '15-20Y', '20-30年\n（20~30Y）': '20-30Y', '30年以上\n（More then 30Y）': '30Y+',
-           '3-5年\n（3~5Y）': '3-5Y',
-           '10-15年\n（10~15Y）': '10-15Y', '政策性金融债-老债\n(Policy Financial Bond-old bond)': '政策性金融债-老债',
-           '国债-老债\n（Treasury Bond-old bond）': '国债-老债', '地方政府债\n（Local Goverment Bond）': '地方债',
-           '中期票据\n（Medium-term Note）': '中票', '短期/超短期融资券\n(Short-term Commercial Paper)': '短融',
-           '国债-新债\n（Treasury Bond-new bond）': '国债-新债', '企业债\n（Corporate Bond）': '企业债',
-           '政策性金融债-新债\n(Policy Financial Bond-new bond)': '政策性金融债-新债', '同业存单\n（CDs）': '同业存单',
-           '其他\n（Others）': '其他', '资产支持证券\n（Asset-bakced Security）': 'ABS'}
-
-    data.rename(index=dic, level=1, inplace=True)
-    data.rename(index=dic, level=2, inplace=True)
-    data.rename(columns=dic, inplace=True)
-
-    data = data.replace('—', 0)
-
-    data = data.sort_index(level=0)
-    data = data.sort_index(level=1)
-    data = data.sort_index(level=2)
-    # 下面开始将数据写到数据库中
-    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
-    # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
-    table_name = "net_incr_bond"
-    check_time = dateutil.parser.parse(filename2date(filename)).date()
-    sql = "select * from " + table_name + " where 日期=\"" + str(check_time) + "\""
-    check_result = engine.execute(sql).rowcount
-    if check_result != 0:
-        print "this data has already been inserted"
-    else:
-        repo_insert_db(data, table_name)
+        table_name = "net_incr_bond"
+        # 下面开始将数据写到数据库中
+        engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
+        # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
+        check_time = dateutil.parser.parse(filename2date(filename)).date()
+        print label
+        sql = u"select * from " + table_name + " where 日期=\"" + str(check_time) + "\"" +" and 交易类型=\"" + label + "\""
+        check_result = engine.execute(sql).rowcount
+        if check_result != 0:
+            print "this data has already been inserted"
+        else:
+            repo_insert_db(data, table_name)
 
 
 #回购
@@ -181,7 +178,6 @@ def name2df_repo(filename, dataset):
 
         # data = data.set_axis([['正回购方'] * 6, data.columns], axis = 1)
         data.columns.names = ['机构']
-
         data.index.names = ['日期', '机构']
 
         for column, series in data.items():
@@ -212,16 +208,17 @@ def name2df_repo(filename, dataset):
     else:
         repo_insert_db(data, table_name)
 
-#银行间
+#信用拆借
 def name2df_IB(filename, dataset):
     time = dateutil.parser.parse(filename2date(filename)).date()
     if dataset == 1:
-        data = pd.read_excel('C:\\Users\\Joyce Lin\\CFETS\\{filename}', sheet_name=0, skiprows=0, nrows=6,
+        data = pd.read_excel(path_general+filename, sheet_name=0, skiprows=0, nrows=6,
                              usecols=[1, 2, 3, 4, 5, 6, 7, 8, 9],
                              index_col=[0, 1], column_col=[0, 1, 2])
 
         data = data.replace('-', 0)
         data = data.reset_index(level=1)
+
         data = data.set_axis(data.iloc[0], axis=1)
         data = data.iloc[1:, :]
 
@@ -232,11 +229,11 @@ def name2df_IB(filename, dataset):
         for column, series in data.items():
             if series.dtype == 'object':
                 data[column] = data[column].astype(np.float64)
-
+        print data
         return data
 
     else:
-        data = pd.read_excel('C:\\Users\\Joyce Lin\\CFETS\\{filename}', skiprows=8, nrows=77, index_col=[0, 1])
+        data = pd.read_excel(path_general+filename, skiprows=8, nrows=77, index_col=[0, 1])
 
         data = data.replace('-', 0)
         # match = {'期限品种':'Type', '正回购加权利率(%)':'Repo_rate', '正回购加权利率-剔除超50BP(%)':'Repo_rate_exc_abnormal',
@@ -283,13 +280,17 @@ def repo_insert_db(df, table_name):
 
 if __name__ == '__main__':
     # a =find_new_file()
+    path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
     filename_list = os.listdir("/Users/hund567/Desktop/code_pycharm/CMB_BOND/data")
     for each in filename_list:
         # if "质押" in each:
         #     for i in range(1,4):
-        #         print i
         #         name2df_repo(each,i)
-        if "现券" in each:
-            name2df_net_incr_bond(each)
+        # if "现券" in each:
+        #     name2df_net_incr_bond(each)
+        if "信用拆借" in each:
+            name2df_IB(each,1)
+
+
 
 
