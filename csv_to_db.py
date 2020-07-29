@@ -79,11 +79,12 @@ def name2df_trans_bond(filename):
 
     # 从excel中取数，重命名，将无数据的单元格设定为零
     # filename = f'现券清洗收盘行情报表_2020{month_n_date}.csv'
-    data = pd.read_csv('C:\\Users\\Joyce Lin\\CFETS\\{filename}', encoding='gb2312', index_col=[0])
+    data = pd.read_csv(path_general+filename, encoding='gb2312', index_col=[0])
     data = data.rename(columns=code_name_match)
     data = data.replace('-', 0)
     data.index = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
-
+    data.index.name = "日期"
+    time = dateutil.parser.parse(filename2date(filename)).date()
     # 将数据单元格统一成数字格式便于运算
     for column, series in data.items():
         if series.dtype == 'object' and (column not in ['name', 'code']):
@@ -101,8 +102,26 @@ def name2df_trans_bond(filename):
     # data['bond_type'] = w.wss(list(data.code), "windl2type").Data[0]
     data['bond_type'] = "其他"
     data.bond_type.fillna(value='其他', inplace=True)
+    # 下面开始将数据写到数据库中
+    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
+                           encoding='utf-8')
+    # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
+    table_name = "transaction_bond"
+    # 检查表是否存在，若不存在直接创建表
+    tablecheck_sql = "show tables like \"" + table_name + "\""
+    tablecheck_result = engine.execute(tablecheck_sql).rowcount
+    if tablecheck_result != 0:
+        sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
+        check_result = engine.execute(sql).rowcount
+        if check_result != 0:
+            print "this data has already been inserted"
+        else:
+            insert_db(data, table_name)
+    elif tablecheck_result == 0:
+        insert_db(data, table_name)
+    else:
+        print "duplicate tables exist"
 
-    return data
 
 
 def name2df_net_incr_bond(filename):
@@ -112,7 +131,7 @@ def name2df_net_incr_bond(filename):
     for sheet_num in range(0,3):
         labels=[u"buy",u"sell",u"net"]
         label = labels[sheet_num]
-        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=sheet_num, skiprows=4, nrows=120,
+        data = pd.read_excel(path_general+filename, sheet_name=sheet_num, skiprows=4, nrows=120,
                              index_col=[0, 1], column_col=[0, 1])
         time = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
 
@@ -154,20 +173,19 @@ def name2df_net_incr_bond(filename):
         engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
         # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
         check_time = dateutil.parser.parse(filename2date(filename)).date()
-        print label
         sql = u"select * from " + table_name + " where 日期=\"" + str(check_time) + "\"" +" and 交易类型=\"" + label + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
             print "this data has already been inserted"
         else:
-            repo_insert_db(data, table_name)
+            insert_db(data, table_name)
 
 
 #回购
 def name2df_repo(filename, dataset):
     time = dateutil.parser.parse(str(filename2date(filename))).date()
     if dataset == 1:
-        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=0, nrows=6,
+        data = pd.read_excel(path_general+filename, sheet_name=0, skiprows=0, nrows=6,
                              usecols=[1, 2, 3, 4, 5, 6, 7],
                              index_col=[0, 1], column_col=[0, 1, 2])
         data = data.replace('-', 0)
@@ -186,13 +204,13 @@ def name2df_repo(filename, dataset):
 
 
     elif dataset == 2:
-        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=8, nrows=99,
+        data = pd.read_excel(path_general+filename, sheet_name=0, skiprows=8, nrows=99,
                              usecols=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], index_col=[0, 1], column_col=[0])
         data = data.replace('-', 0)
         data = data.set_index([[time] * len(data), data.index], drop=False)
         data.index.names = ['日期', '机构类型', '期限品种']
     else:
-        data = pd.read_excel('/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/'+filename, sheet_name=0, skiprows=110, nrows=27,
+        data = pd.read_excel(path_general+filename, sheet_name=0, skiprows=110, nrows=27,
                              usecols=[0, 1, 2, 3, 4, 5], index_col=[0, 1], column_col=[0])
         data = data.replace('-', 0)
         data = data.set_index([[time] * len(data), data.index], drop=False)
@@ -200,14 +218,28 @@ def name2df_repo(filename, dataset):
     #下面开始将数据写到数据库中
     engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
     # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
+    # table_name = "repo_" + str(dataset)
+    # sql = "select * from "+table_name+" where 日期=\"" + str(time)+"\""
+    # check_result = engine.execute(sql).rowcount
+    # if check_result != 0 :
+    #     print "this data has already been inserted"
+    # else:
+    #     insert_db(data, table_name)
     table_name = "repo_" + str(dataset)
-    sql = "select * from "+table_name+" where 日期=\"" + str(time)+"\""
-    check_result = engine.execute(sql).rowcount
-    if check_result != 0 :
-        print "this data has already been inserted"
+    # 检查表是否存在，若不存在直接创建表
+    tablecheck_sql = "show tables like \"" + table_name + "\""
+    tablecheck_result = engine.execute(tablecheck_sql).rowcount
+    if tablecheck_result != 0:
+        sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
+        check_result = engine.execute(sql).rowcount
+        if check_result != 0:
+            print "this data has already been inserted"
+        else:
+            insert_db(data, table_name)
+    elif tablecheck_result == 0:
+        insert_db(data, table_name)
     else:
-        repo_insert_db(data, table_name)
-
+        print "duplicate tables exist"
 #信用拆借
 def name2df_IB(filename, dataset):
     time = dateutil.parser.parse(filename2date(filename)).date()
@@ -216,21 +248,21 @@ def name2df_IB(filename, dataset):
                              usecols=[1, 2, 3, 4, 5, 6, 7, 8, 9],
                              index_col=[0, 1], column_col=[0, 1, 2])
 
-        data = data.replace('-', 0)
         data = data.reset_index(level=1)
+        data = data.replace('-', 0)
+        data.columns = data.iloc[0]
+        data.drop(data.index[0], inplace=True)
+        data = data.iloc[:,0:8]
 
-        data = data.set_axis(data.iloc[0], axis=1)
-        data = data.iloc[1:, :]
+        # data = data.iloc[1:, :]
 
         data = data.set_index([[time] * len(data), data.index], drop=False)
         data.index.names = ['日期', '机构']
-        data.columns.names = ['']
+        # data.columns.names = ['']
 
         for column, series in data.items():
             if series.dtype == 'object':
                 data[column] = data[column].astype(np.float64)
-        print data
-        return data
 
     else:
         data = pd.read_excel(path_general+filename, skiprows=8, nrows=77, index_col=[0, 1])
@@ -248,12 +280,28 @@ def name2df_IB(filename, dataset):
         # data.rename(columns = match)
         data = data.set_index([[time] * len(data), data.index], drop=False)
         data.index.names = ['日期', '机构类型', '期限品种']
+    # 下面开始将数据写到数据库中
+    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
+                           encoding='utf-8')
+    # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
+    table_name = "IB_" + str(dataset)
+    #检查表是否存在，若不存在直接创建表
+    tablecheck_sql = "show tables like \""+table_name+"\""
+    tablecheck_result = engine.execute(tablecheck_sql).rowcount
+    if tablecheck_result != 0 :
+        sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
+        check_result = engine.execute(sql).rowcount
+        if check_result != 0:
+            print "this data has already been inserted"
+        else:
+            insert_db(data, table_name)
+    elif tablecheck_result ==0:
+        insert_db(data, table_name)
+    else:
+        print "duplicate tables exist"
 
-        return data
 
-
-
-def repo_insert_db(df, table_name):
+def insert_db(df, table_name):
 
     #将dataframe以指定tablename导入sql的特定数据库中（数据库需存在，不能创建）。
     def mapping_df_types(df):
@@ -281,15 +329,19 @@ def repo_insert_db(df, table_name):
 if __name__ == '__main__':
     # a =find_new_file()
     path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
-    filename_list = os.listdir("/Users/hund567/Desktop/code_pycharm/CMB_BOND/data")
+    filename_list = os.listdir(path_general)
     for each in filename_list:
-        # if "质押" in each:
-        #     for i in range(1,4):
-        #         name2df_repo(each,i)
-        # if "现券" in each:
-        #     name2df_net_incr_bond(each)
+        if "质押" in each:
+            for i in range(1,4):
+                name2df_repo(each,i)
+        if "现券市场" in each:
+            name2df_net_incr_bond(each)
         if "信用拆借" in each:
-            name2df_IB(each,1)
+            print each
+            for j in range(1, 3):
+                name2df_IB(each,j)
+        if "现券清洗" in each:
+            name2df_trans_bond(each)
 
 
 
