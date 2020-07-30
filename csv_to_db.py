@@ -18,11 +18,8 @@ sys.setdefaultencoding('utf-8')
 pd.set_option('display.max_columns',None)
 from sqlalchemy import create_engine
 from sqlalchemy.types import NVARCHAR, Float, Integer
-#数据库的全局变量
-user = 'super'
-password = 'Password123'
-db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
-db_name = 'guanc'
+import pymysql
+
 
 #这个函数就是对表头重命名
 def double2Chn(name,value = 1):
@@ -114,11 +111,11 @@ def name2df_trans_bond(filename):
         sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
-            print "this data has already been inserted"
+            print filename+",this data has already been inserted"
         else:
-            insert_db(data, table_name)
+            insert_db(data, table_name, filename)
     elif tablecheck_result == 0:
-        insert_db(data, table_name)
+        insert_db(data, table_name, filename)
     else:
         print "duplicate tables exist"
 
@@ -169,16 +166,28 @@ def name2df_net_incr_bond(filename):
         data = data.sort_index(level=2)
 
         table_name = "net_incr_bond"
-        # 下面开始将数据写到数据库中
-        engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
-        # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
         check_time = dateutil.parser.parse(filename2date(filename)).date()
-        sql = u"select * from " + table_name + " where 日期=\"" + str(check_time) + "\"" +" and 交易类型=\"" + label + "\""
-        check_result = engine.execute(sql).rowcount
-        if check_result != 0:
-            print "this data has already been inserted"
+        # 检查表是否存在，若不存在直接创建表
+        engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
+                               encoding='utf-8')
+        tablecheck_sql = "show tables like \"" + table_name + "\""
+        tablecheck_result = engine.execute(tablecheck_sql).rowcount
+        if tablecheck_result != 0:
+            sql = u"select * from " + table_name + " where 日期=\"" + str(check_time) + "\"" +" and 交易类型=\"" + label + "\""
+            check_result = engine.execute(sql).rowcount
+            if check_result != 0:
+                print filename+",this data has already been inserted"
+            else:
+                insert_db(data, table_name, filename)
+        elif tablecheck_result == 0:
+            insert_db(data, table_name, filename)
         else:
-            insert_db(data, table_name)
+            print "duplicate tables exist"
+
+
+
+
+
 
 
 #回购
@@ -233,11 +242,11 @@ def name2df_repo(filename, dataset):
         sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
-            print "this data has already been inserted"
+            print filename+",this data has already been inserted"
         else:
-            insert_db(data, table_name)
+            insert_db(data, table_name,filename)
     elif tablecheck_result == 0:
-        insert_db(data, table_name)
+        insert_db(data, table_name,filename)
     else:
         print "duplicate tables exist"
 #信用拆借
@@ -292,16 +301,16 @@ def name2df_IB(filename, dataset):
         sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
-            print "this data has already been inserted"
+            print filename+",this data has already been inserted"
         else:
-            insert_db(data, table_name)
+            insert_db(data, table_name, filename)
     elif tablecheck_result ==0:
-        insert_db(data, table_name)
+        insert_db(data, table_name, filename)
     else:
         print "duplicate tables exist"
 
 
-def insert_db(df, table_name):
+def insert_db(df, table_name,csv_name):
 
     #将dataframe以指定tablename导入sql的特定数据库中（数据库需存在，不能创建）。
     def mapping_df_types(df):
@@ -320,24 +329,40 @@ def insert_db(df, table_name):
     engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+"/"+db_name, encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=True, dtype=dtypedict, if_exists='append')
-        print "update successful"
+        print csv_name+" update successful"
     except:
         print "Error to inert,see the detail"
 
 
 
 if __name__ == '__main__':
-    # a =find_new_file()
-    path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
+    # 数据库的全局变量
+    user = 'super'
+    password = 'Password123'
+    db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
+    db_name = 'guanc1'
+    #文件路径
+    path_general = "C:\Users\Administrator\Desktop\data_csv\\"
+    #数据库创建判断
+    conn = pymysql.connect(user=user, password=password, host=db_ip, charset='utf8')
+    cur = conn.cursor()
+    try:
+        cur.execute("create database if not exists " + db_name + " DEFAULT CHARACTER SET utf8")
+    except:
+        pass
+    cur.close()
+    conn.close()
+
     filename_list = os.listdir(path_general)
+    # print filename_list
     for each in filename_list:
+        each =  each.decode(encoding="gb2312", errors="strict")
         if "质押" in each:
             for i in range(1,4):
                 name2df_repo(each,i)
         if "现券市场" in each:
             name2df_net_incr_bond(each)
         if "信用拆借" in each:
-            print each
             for j in range(1, 3):
                 name2df_IB(each,j)
         if "现券清洗" in each:
