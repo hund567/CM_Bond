@@ -31,10 +31,13 @@ def double2Chn(name,value = 1):
     uniq_new = uniq_new.map(lambda x : x.replace('Less then 1Y，including 1Y', '0-1Y').replace('More then 30Y',
                                             '30Y+').replace('~', '-').replace('（', '').replace('）','').replace('(',
                                              '').replace(')',''))
-    uniq_new = uniq_new.map(lambda x : x.replace('基金公司及产品', '基金及产品').replace('大型商业银行/政策性银行',
+    uniq_new = uniq_new.map(lambda x : x.replace('基金公司及产品', '基金').replace('大型商业银行/政策性银行',
                                     '大行和政策行').replace('股份制商业银行', '股份行').replace('城市商业银行',
                                     '城商行').replace('证券公司','券商').replace('理财类产品','理财').replace('短期/超短期融资券',
-                                    '短融').replace('中期票据','中票').replace('资产支持证券','ABS').replace('地方政府债','地方债'))
+                                    '短融').replace('中期票据','中票').replace('资产支持证券','ABS').replace('地方政府债','地方债')
+                                    .replace('外资银行', '外资行').replace('农村金融机构','农商行').replace('保险公司','保险')
+                                    .replace('基金公司及产品', '基金').replace('其他产品类', '其他产品')
+                            )
     return dict(zip(uniq, uniq_new))
 
 
@@ -136,11 +139,11 @@ def name2df_net_incr_bond(filename):
         data.index.names = [u'日期', u'机构', u'期限']
         data = data.replace('-', 0)
         dic = {u'大型商业银行/政策性银行\n（Large Commercial Banks/Policy Banks）': u'大行和政策行', u'理财类产品\n（Wealth management products）': u'理财',
-               u'其他产品类\n（else products）': u'其他产品类', u'城市商业银行\n（Urban Commercial Bank）': u'城商行',
-               u'农村金融机构\n（Rural financial institutions）': u'农村金融机构', u'股份制商业银行\n（Joint Stock Commercial Bank）': u'股份行',
-               u'证券公司\n（Securities companies ）': u'券商', u'保险公司\n（The insurance company）': u'保险公司',
-               u'基金公司及产品\n（Fund companies and products）': u'基金及产品', u'境外机构\n（Foreign institutions）': u'境外机构',
-               u'其他\n(Others)': u'其他', u'外资银行\n（Foreign banks）': u'外资银行', u'5-7年\n（5~7Y）': u'5-7Y', u'1-3年\n（1~3Y）': u'1-3Y',
+               u'其他产品类\n（else products）': u'其他产品', u'城市商业银行\n（Urban Commercial Bank）': u'城商行',
+               u'农村金融机构\n（Rural financial institutions）': u'农商行', u'股份制商业银行\n（Joint Stock Commercial Bank）': u'股份行',
+               u'证券公司\n（Securities companies ）': u'券商自营', u'保险公司\n（The insurance company）': u'保险',
+               u'基金公司及产品\n（Fund companies and products）': u'基金', u'境外机构\n（Foreign institutions）': u'境外机构',
+               u'其他\n(Others)': u'其他', u'外资银行\n（Foreign banks）': u'外资行', u'5-7年\n（5~7Y）': u'5-7Y', u'1-3年\n（1~3Y）': u'1-3Y',
                u'7-10年\n（7~10Y）': u'7-10Y', u'合计\n(Total)': u'合计', u'1年及1年以下\n（Less then 1Y，including 1Y）': u'0-1Y',
                u'15-20年\n（15~20Y）': u'15-20Y', u'20-30年\n（20~30Y）': u'20-30Y', u'30年以上\n（More then 30Y）': u'30Y+',
                u'3-5年\n（3~5Y）': u'3-5Y',
