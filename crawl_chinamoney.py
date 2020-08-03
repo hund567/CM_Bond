@@ -15,17 +15,10 @@ password = 'Password123'
 db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
 db_name = 'guanc'
 
-
 def crawl_cur(type):
     #共有两套URL 一套是当前的 一套是根据时间的
     df_all = pd.DataFrame()
     url_cur = "http://www.chinamoney.com.cn/r/cms/www/chinamoney/data/currency/ibl-mth-bltn-"+type+".json"
-
-    # para = {
-    #     "year": str(y),
-    #     "month": m
-    # }
-
     header = {
         "Referer": "http://www.chinamoney.com.cn/chinese/mtmoncjgl/",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36 SE 2.X MetaSr 1.0",
@@ -42,7 +35,6 @@ def crawl_cur(type):
             print each
 
 def crawl_his():
-
     header = {
         "Referer": "http://www.chinamoney.com.cn/chinese/mtmoncjgl/",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36 SE 2.X MetaSr 1.0",
@@ -68,10 +60,9 @@ def crawl_his():
                     for each in data:
                         print each
 
-
 if __name__ == '__main__':
     types = ["tran","bala","inst"]
-    # for type in types:
-    #     crawl_cur(type)
+    for type in types:
+        crawl_cur(type)
     crawl_his()
 

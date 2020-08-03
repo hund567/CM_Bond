@@ -13,7 +13,7 @@ password = 'Password123'
 db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
 db_name = 'guanc'
 
-def demo(table_name):
+def view_create(table_name):
     conn = pymysql.connect(user=user, password=password, host=db_ip,db=db_name, charset='utf8')
     cursor = conn.cursor()
     try:
@@ -27,6 +27,7 @@ def demo(table_name):
     for column in columns:
         columns_str = columns_str + "," + column[0]
         try:
+
             cursor.execute("select name from dict where id=\""+ column[0]+"\"")
             name = cursor.fetchall()[0][0]
             rename_str += column[0] + " \"" + name + "\","
@@ -36,9 +37,8 @@ def demo(table_name):
     rename_str = rename_str[:-1]
 
     #创建view
-    view_sql = "create view " + table_name +"_view  as (select bond_time, " + \
+    view_sql = "create view " + table_name +"_view  as (select 日期, " + \
                rename_str + " from " + table_name + ")"
-    print view_sql
     try:
         cursor.execute(view_sql)
         cursor.close()
@@ -47,4 +47,4 @@ def demo(table_name):
     except pymysql.Error as e:
         print(e.args[0], e.args[1])
 if __name__ == '__main__':
-    demo("original")
+    view_create("国债利率")
