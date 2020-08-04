@@ -111,7 +111,9 @@ if __name__ == '__main__':
     cur.close()
     conn.close()
 
-    bond_type = ['质押式回购','同业拆借','信用拆借','互换','口行债','国债']
+    bond_type = ['质押式回购','同业拆借','信用拆借','互换','口行债','国债','中短期票据','美元债','企业债',
+                 '商业银行']
 
-    get_rate_from_wind('国债')
-    view_create("国债"+"利率")
+    for each in bond_type:
+        # get_rate_from_wind(each)
+        view_create(each+"_rates")
