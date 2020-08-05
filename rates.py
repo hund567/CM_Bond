@@ -23,11 +23,12 @@ sys.setdefaultencoding('utf-8')
 def get_rate_from_wind(bond_type):
     #1.先判断表是否存在，若没有直接创建
     #2.查看表的最新更新日期，没有默认按照1990. 从wind中提取数据并直接做插入处理
-
+    eng_table_name = dict_bond_type[bond_type]
     engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
                            encoding='utf-8')
 
-    id_sql = "select id,eng_name from dict where data_type=\"bond_rate\" and name like "+"\"%%"+bond_type+"%%\""
+    id_sql = "select id,eng_name from dict where data_type=\"bond_rate\" and name like "+"\"%%"+bond_type+"%%\"" \
+            + " order by dict.index asc"
     ids = engine.execute(id_sql).fetchall()
     id_list=[]
     eng_name_list = []
@@ -38,10 +39,10 @@ def get_rate_from_wind(bond_type):
     today = datetime.datetime.today().date()
     end_time = datetime.datetime.today().date()
 
-    table_name = bond_type+"利率"
+    table_name = eng_table_name+"_rates"
     tablecheck_result = engine.execute("show tables like \"" + table_name + "\"").rowcount
     if tablecheck_result != 0:
-        time_sql = "select 日期 from "+ table_name +" t order by 日期 DESC limit 1"
+        time_sql = "select date from "+ table_name +" t order by date DESC limit 1"
         if engine.execute(time_sql).rowcount == 1:
             start_time = engine.execute(time_sql).fetchall()[0][0]
         else:
@@ -50,9 +51,9 @@ def get_rate_from_wind(bond_type):
         winddata = w.edb(id_list, start_time, today)
 
         df = pd.DataFrame()
-        df["日期"] = winddata.Times
-        df["日期"] = pd.to_datetime(df['日期'])
-        print df.dtypes
+        df["date"] = winddata.Times
+        df["date"] = pd.to_datetime(df['date'])
+
         for id, singledata in zip(winddata.Codes, winddata.Data[0]):
             df[id] = singledata
         insert_db(df,table_name)
@@ -61,7 +62,7 @@ def get_rate_from_wind(bond_type):
         start_time = "1990-01-01"
         winddata = w.edb(id_list, start_time, today)
         df = pd.DataFrame()
-        df["日期"] = winddata.Times
+        df["date"] = winddata.Times
         for id, singledata in zip(winddata.Codes, winddata.Data):
             df[id] = singledata
         insert_db(df, table_name)
@@ -112,8 +113,25 @@ if __name__ == '__main__':
     conn.close()
 
     bond_type = ['质押式回购','同业拆借','信用拆借','互换','口行债','国债','中短期票据','美元债','企业债',
-                 '商业银行']
+                 '商业银行','SHIBOR','农发行']
 
+
+    dict_bond_type={"质押式回购":"repo",
+           "同业拆借":"interbanklending",
+           "信用拆借":"DepositInistlending",
+           "互换":"irs",
+           "口行债":"EXIM",
+           "农发债":"ADB",
+           "国债":"CGB",
+           "中短期票据":"MTN",
+           "美元债":"USDbond",
+           "企业债":"CORB",
+           "地方债":"LGB",
+           "农发行":"ADB",
+           "商业银行":"CB",
+            "SHIBOR":"SHIBOR"
+           }
     for each in bond_type:
-        # get_rate_from_wind(each)
-        view_create(each+"_rates")
+        get_rate_from_wind(each)
+        # view_create(each+"利率",chn)
+

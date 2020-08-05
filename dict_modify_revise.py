@@ -163,9 +163,10 @@ def modify_single_index(index):
         str_body = "_".join(index_list)
         str_body = str_body.replace("+", "Plus").replace("-", "Minus") \
             .replace("年", "Y").replace("月", "M") \
-            .replace("天", "D").replace("个", "") 
+            .replace("天", "D").replace("个", "").replace("贷款", "Loan").replace("定存", "FD") \
+            .replace("周", "W").replace("隔夜", "OV")
 
-    eng_name = str_body
+    eng_name = str_body.replace("__","_")
     #插入数据
     conn = pymysql.connect(user=user, password=password, host=db_ip, db=db_name, charset='utf8')
     cursor = conn.cursor()
