@@ -50,8 +50,11 @@ def demo():
 
 
 
-
+def test():
+    data = w.edb("M1000165","2020-08-04","2020-08-05")
+    print data
 
 
 if __name__ == '__main__':
-    demo()
+    # demo()
+    test()

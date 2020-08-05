@@ -62,7 +62,7 @@ Num_dict= {"中债":"CB",
             "中短期票据":"MTN",
            "利率互换":"IRS",
            "银行间同业拆借":"interbanklending",
-           "存款类机构信用拆借":"DepositInstilending",
+           "存款类机构信用拆借":"DepositInterBanklending",
            "中资美元债":"USDbond",
            "商业银行同业存单":"CD",
            "商业银行普通债":"BankFinBond",
@@ -123,7 +123,7 @@ def modify_single_index(index):
                                .replace("年","Y")  .replace("月","M")\
                                .replace("天","D")  .replace("个","")\
                                .replace("曲线","").replace("(","") \
-                               .replace("周", "W").replace("隔夜", "OV") \
+                               .replace("周", "W").replace("隔夜", "ON") \
 
         elif "(" not in index_list[1] and ":" in index_list[1]:
             str_body = index_list[1].split(":")
@@ -135,7 +135,7 @@ def modify_single_index(index):
                 .replace("年", "Y").replace("月", "M") \
                 .replace("天", "D").replace("个", "") \
                 .replace("曲线", "").replace("(", "")\
-                .replace("周", "W").replace("隔夜", "OV")
+                .replace("周", "W").replace("隔夜", "ON")
         str_body = str_body_pre + "_" + str_body
 
     elif "加权利率" in index:

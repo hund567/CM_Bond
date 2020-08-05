@@ -16,6 +16,7 @@ import pymysql
 from WindPy import w
 w.start()
 from mapping import view_create
+from mapping import chn_view_create
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
@@ -24,7 +25,7 @@ def get_rate_from_wind(bond_type):
     #1.先判断表是否存在，若没有直接创建
     #2.查看表的最新更新日期，没有默认按照1990. 从wind中提取数据并直接做插入处理
     eng_table_name = dict_bond_type[bond_type]
-    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
+    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
                            encoding='utf-8')
 
     id_sql = "select id,eng_name from dict where data_type=\"bond_rate\" and name like "+"\"%%"+bond_type+"%%\"" \
@@ -39,24 +40,26 @@ def get_rate_from_wind(bond_type):
     today = datetime.datetime.today().date()
     end_time = datetime.datetime.today().date()
 
-    table_name = eng_table_name+"_rates"
+    table_name = eng_table_name
     tablecheck_result = engine.execute("show tables like \"" + table_name + "\"").rowcount
     if tablecheck_result != 0:
         time_sql = "select date from "+ table_name +" t order by date DESC limit 1"
         if engine.execute(time_sql).rowcount == 1:
-            start_time = engine.execute(time_sql).fetchall()[0][0]
+            latest_mark_time = engine.execute(time_sql).fetchall()[0][0]
+            start_time = latest_mark_time + datetime.timedelta(days=1)
+
         else:
             start_time = "1990-01-01"
 
-        winddata = w.edb(id_list, start_time, today)
-
-        df = pd.DataFrame()
-        df["date"] = winddata.Times
-        df["date"] = pd.to_datetime(df['date'])
-
-        for id, singledata in zip(winddata.Codes, winddata.Data[0]):
-            df[id] = singledata
-        insert_db(df,table_name)
+        if latest_mark_time < today:
+            winddata = w.edb(id_list, start_time, today)
+            df = pd.DataFrame()
+            df["date"] = winddata.Times
+            df["date"] = pd.to_datetime(df['date'])
+            if  winddata.Times[-1] >= start_time:
+                for id, singledata in zip(winddata.Codes, winddata.Data[0]):
+                    df[id] = singledata
+                insert_db(df,table_name)
 
     elif tablecheck_result == 0:
         start_time = "1990-01-01"
@@ -74,7 +77,7 @@ def insert_db(df, table_name):
 
     #将dataframe以指定tablename导入sql的特定数据库中（数据库需存在，不能创建）。
     dtypedict = mapping_df_types(df)
-    engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+"/"+db_name, encoding='utf-8')
+    engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+":"+str(port)+"/"+db_name, encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=False, dtype=dtypedict, if_exists='append')
         print " update successful"
@@ -97,13 +100,19 @@ def mapping_df_types(df):
 
 if __name__ == '__main__':
     # 数据库的全局变量
-    user = 'super'
-    password = 'Password123'
-    db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
-    db_name = 'guanc'
+    # user = 'super'
+    # password = 'Password123'
+    # db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
+    # db_name = 'guanc'
+
+    user = 'root'
+    password = 'Welcome123'
+    db_ip = "cdb-3gsotx9q.cd.tencentcdb.com"
+    db_name = 'rates'
+    port = 10059
 
     # 数据库创建判断
-    conn = pymysql.connect(user=user, password=password, host=db_ip, charset='utf8')
+    conn = pymysql.connect(user=user, password=password, host=db_ip, charset='utf8',port=port)
     cur = conn.cursor()
     try:
         cur.execute("create database if not exists " + db_name + " DEFAULT CHARACTER SET utf8")
@@ -112,26 +121,34 @@ if __name__ == '__main__':
     cur.close()
     conn.close()
 
-    bond_type = ['质押式回购','同业拆借','信用拆借','互换','口行债','国债','中短期票据','美元债','企业债',
-                 '商业银行','SHIBOR','农发行']
+    bond_type = ['国债','地方政府债','国开债','口行债','农发行债','中短期票据',
+                 '企业债','商业银行二级资本债','商业银行普通债','同业存单','中资美元债',
+                 '拆借','质押式回购','互换',"SHIBOR"]
+    special_type=["ExchRepo"]
 
-
-    dict_bond_type={"质押式回购":"repo",
-           "同业拆借":"interbanklending",
-           "信用拆借":"DepositInistlending",
-           "互换":"irs",
-           "口行债":"EXIM",
-           "农发债":"ADB",
-           "国债":"CGB",
-           "中短期票据":"MTN",
-           "美元债":"USDbond",
-           "企业债":"CORB",
-           "地方债":"LGB",
-           "农发行":"ADB",
-           "商业银行":"CB",
-            "SHIBOR":"SHIBOR"
-           }
+    dict_bond_type={"质押式回购":"REPO",
+                   "同业拆借":"interbanklending",
+                   "信用拆借":"DepositInistlending",
+                    "拆借":"IBlending",
+                   "互换":"irs",
+                   "口行债":"EXIM",
+                   "农发债":"ADB",
+                   "国债":"CGB",
+                   "国开债":"SGB",
+                    "地方政府债":"LGB",
+                   "中短期票据":"MTN",
+                   "美元债":"USDbond",
+                   "企业债":"CORB",
+                    "商业银行二级资本债":"CBSB",
+                    "商业银行普通债": "BankFinBond",
+                    "同业存单":"CDs",
+                    "中资美元债": "USDbond",
+                   "地方债":"LGB",
+                   "农发行债":"ADB",
+                   "商业银行":"CB",
+                     "SHIBOR":"SHIBOR"
+                   }
     for each in bond_type:
         get_rate_from_wind(each)
-        # view_create(each+"利率",chn)
-
+        view_create(dict_bond_type[each])
+        chn_view_create(each)

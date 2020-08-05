@@ -167,7 +167,7 @@ def name2df_net_incr_bond(filename):
         data = data.sort_index(level=0)
         data = data.sort_index(level=1)
         data = data.sort_index(level=2)
-
+        exit()
         table_name = "net_incr_bond"
         check_time = dateutil.parser.parse(filename2date(filename)).date()
         # 检查表是否存在，若不存在直接创建表
