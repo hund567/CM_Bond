@@ -2,19 +2,13 @@
 import pandas as pd
 import numpy as np
 from pandas import Series, DataFrame
-# from WindPy import w
-# w.start()
 import matplotlib.pyplot as plt
-plt.rcParams['font.sans-serif']=['SimHei']
 import datetime as dt
 import re
 from functools import reduce
 import operator
 import dateutil.parser
 import os
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
 pd.set_option('display.max_columns',None)
 from sqlalchemy import create_engine
 from sqlalchemy.types import NVARCHAR, Float, Integer
@@ -114,13 +108,13 @@ def name2df_trans_bond(filename):
         sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
-            print filename+",this data has already been inserted"
+            print(filename+",this data has already been inserted")
         else:
             insert_db(data, table_name, filename)
     elif tablecheck_result == 0:
         insert_db(data, table_name, filename)
     else:
-        print "duplicate tables exist"
+        print("duplicate tables exist")
 
 
 
@@ -167,7 +161,6 @@ def name2df_net_incr_bond(filename):
         data = data.sort_index(level=0)
         data = data.sort_index(level=1)
         data = data.sort_index(level=2)
-        exit()
         table_name = "net_incr_bond"
         check_time = dateutil.parser.parse(filename2date(filename)).date()
         # 检查表是否存在，若不存在直接创建表
@@ -179,13 +172,13 @@ def name2df_net_incr_bond(filename):
             sql = u"select * from " + table_name + " where 日期=\"" + str(check_time) + "\"" +" and 交易类型=\"" + label + "\""
             check_result = engine.execute(sql).rowcount
             if check_result != 0:
-                print filename+",this data has already been inserted"
+                print(filename+",this data has already been inserted")
             else:
                 insert_db(data, table_name, filename)
         elif tablecheck_result == 0:
             insert_db(data, table_name, filename)
         else:
-            print "duplicate tables exist"
+            print("duplicate tables exist")
 
 
 
@@ -246,13 +239,13 @@ def name2df_repo(filename, dataset):
         sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
-            print filename+",this data has already been inserted"
+            print(filename+",this data has already been inserted")
         else:
             insert_db(data, table_name,filename)
     elif tablecheck_result == 0:
         insert_db(data, table_name,filename)
     else:
-        print "duplicate tables exist"
+        print("duplicate tables exist")
 #信用拆借
 def name2df_IB(filename, dataset):
     time = dateutil.parser.parse(filename2date(filename)).date()
@@ -305,13 +298,13 @@ def name2df_IB(filename, dataset):
         sql = "select * from " + table_name + " where 日期=\"" + str(time) + "\""
         check_result = engine.execute(sql).rowcount
         if check_result != 0:
-            print filename+",this data has already been inserted"
+            print(filename+",this data has already been inserted")
         else:
             insert_db(data, table_name, filename)
     elif tablecheck_result ==0:
         insert_db(data, table_name, filename)
     else:
-        print "duplicate tables exist"
+        print("duplicate tables exist")
 
 
 def insert_db(df, table_name,csv_name):
@@ -334,9 +327,9 @@ def insert_db(df, table_name,csv_name):
                        encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=True, dtype=dtypedict, if_exists='append')
-        print csv_name+" update successful"
+        print(csv_name+" update successful")
     except:
-        print "Error to inert,see the detail"
+        print("Error to inert,see the detail")
 
 
 
@@ -348,7 +341,8 @@ if __name__ == '__main__':
     db_name = 'guanc'
     port = 10059
     #文件路径
-    path_general = "C:\Users\Administrator\Desktop\data_csv\\"
+    # path_general = "C:\Users\Administrator\Desktop\data_csv\\"
+    path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
     #数据库创建判断
     conn = pymysql.connect(user=user, password=password, host=db_ip, port=port,charset='utf8')
     cur = conn.cursor()
@@ -360,9 +354,9 @@ if __name__ == '__main__':
     conn.close()
 
     filename_list = os.listdir(path_general)
-    # print filename_list
+
     for each in filename_list:
-        each =  each.decode(encoding="gb2312", errors="strict")
+        # each =  each.decode(encoding="gb2312", errors="strict")
         if "质押" in each:
             for i in range(1,4):
                 name2df_repo(each,i)
@@ -373,6 +367,8 @@ if __name__ == '__main__':
                 name2df_IB(each,j)
         if "现券清洗" in each:
             name2df_trans_bond(each)
+        else:
+            print("this table is not considered.")
 
 
 
