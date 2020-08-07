@@ -103,8 +103,8 @@ def name2df_trans_bond(filename):
     data['bond_type'] = "其他"
     data.bond_type.fillna(value='其他', inplace=True)
     # 下面开始将数据写到数据库中
-    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
-                           encoding='utf-8')
+    engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
+                       encoding='utf-8')
     # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
     table_name = "transaction_bond"
     # 检查表是否存在，若不存在直接创建表
@@ -171,8 +171,8 @@ def name2df_net_incr_bond(filename):
         table_name = "net_incr_bond"
         check_time = dateutil.parser.parse(filename2date(filename)).date()
         # 检查表是否存在，若不存在直接创建表
-        engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
-                               encoding='utf-8')
+        engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
+                       encoding='utf-8')
         tablecheck_sql = "show tables like \"" + table_name + "\""
         tablecheck_result = engine.execute(tablecheck_sql).rowcount
         if tablecheck_result != 0:
@@ -228,7 +228,8 @@ def name2df_repo(filename, dataset):
         data = data.set_index([[time] * len(data), data.index], drop=False)
         data.index.names = ['日期','机构类型', '债券类型']
     #下面开始将数据写到数据库中
-    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name, encoding='utf-8')
+    engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
+                       encoding='utf-8')
     # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
     # table_name = "repo_" + str(dataset)
     # sql = "select * from "+table_name+" where 日期=\"" + str(time)+"\""
@@ -293,8 +294,8 @@ def name2df_IB(filename, dataset):
         data = data.set_index([[time] * len(data), data.index], drop=False)
         data.index.names = ['日期', '机构类型', '期限品种']
     # 下面开始将数据写到数据库中
-    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + "/" + db_name,
-                           encoding='utf-8')
+    engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
+                       encoding='utf-8')
     # 由于是append 我们先判断是否已经导入,如果已经导入，我们就跳过，否则执行插入
     table_name = "IB_" + str(dataset)
     #检查表是否存在，若不存在直接创建表
@@ -329,7 +330,8 @@ def insert_db(df, table_name,csv_name):
 
     dtypedict = mapping_df_types(df)
 
-    engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+"/"+db_name, encoding='utf-8')
+    engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
+                       encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=True, dtype=dtypedict, if_exists='append')
         print csv_name+" update successful"
@@ -340,14 +342,15 @@ def insert_db(df, table_name,csv_name):
 
 if __name__ == '__main__':
     # 数据库的全局变量
-    user = 'super'
-    password = 'Password123'
-    db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
-    db_name = 'guanc1'
+    user = 'root'
+    password = 'Welcome123'
+    db_ip = "cdb-3gsotx9q.cd.tencentcdb.com"
+    db_name = 'guanc'
+    port = 10059
     #文件路径
     path_general = "C:\Users\Administrator\Desktop\data_csv\\"
     #数据库创建判断
-    conn = pymysql.connect(user=user, password=password, host=db_ip, charset='utf8')
+    conn = pymysql.connect(user=user, password=password, host=db_ip, port=port,charset='utf8')
     cur = conn.cursor()
     try:
         cur.execute("create database if not exists " + db_name + " DEFAULT CHARACTER SET utf8")
