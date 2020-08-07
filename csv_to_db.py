@@ -1,9 +1,6 @@
 # -*- coding:utf-8 -*-
 import pandas as pd
 import numpy as np
-from pandas import Series, DataFrame
-import matplotlib.pyplot as plt
-import datetime as dt
 import re
 from functools import reduce
 import operator
@@ -17,9 +14,7 @@ import pymysql
 
 #这个函数就是对表头重命名
 def double2Chn(name,value = 1):
-    '''
-    输入CFETS格式的中英混合名字（可重复），输出英文-中文字典
-    '''
+
     uniq = pd.Series(list(set(name)))
     uniq_new = uniq.map(lambda x : (re.split('[\n]',x)[value]))
     uniq_new = uniq_new.map(lambda x : x.replace('Less then 1Y，including 1Y', '0-1Y').replace('More then 30Y',

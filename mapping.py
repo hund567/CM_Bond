@@ -37,7 +37,7 @@ def view_create(table_name):
     rename_str = rename_str[:-1]
 
     #创建view
-    view_sql = "create view " + table_name +"_view  as (select date, " + \
+    view_sql = "create view " + table_name +"  as (select date, " + \
                rename_str + " from " + table_name + ")"
     try:
         cursor.execute(view_sql)
@@ -92,8 +92,8 @@ def chn_view_create(chn_table_name):
             break
     rename_str = rename_str[:-1]
 
-    #创建view
-    view_sql = "create view " + chn_table_name +"视图  as (select date, " + \
+    #创建中文view
+    view_sql = "create view " + table_name +"_chn  as (select date, " + \
                rename_str + " from " + table_name + ")"
     try:
         cursor.execute(view_sql)
