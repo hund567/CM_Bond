@@ -3,23 +3,21 @@ import time
 import datetime
 import pymysql
 from sqlalchemy import create_engine
-import sys
-import plotly
-import plotly.graph_objects as go
-import plotly.offline as py
-from plotly.graph_objs import Scatter,Layout
+# import plotly
+# import plotly.graph_objects as go
+# import plotly.offline as py
+# from plotly.graph_objs import Scatter,Layout
 import pandas as pd
 import datetime
 from sqlalchemy import create_engine
-reload(sys)
-sys.setdefaultencoding('utf-8')
 
 
 #全局变量
-user = 'super'
-password = 'Password123'
-db_ip = "mysql57.rdsm05ltcjxv6y8.rds.bj.baidubce.com"
-db_name = 'guanc'
+user = 'root'
+password = 'Welcome123'
+db_ip = "cdb-3gsotx9q.cd.tencentcdb.com"
+db_name = 'rates'
+port = 10059
 Num_dict= {"中债":"CB",
           "上清所":"SC",
           "交易所市场":"ExchMkt",
@@ -49,6 +47,7 @@ Num_dict= {"中债":"CB",
            "非金融机构":"NonFinancialIns",
            "中国农业发展银行债":"ADB",
            "农发债":"ADB",
+           "农发行债":"ADB",
            "中国进出口银行债":"EXIM",
            "进出口行债":"EXIM",
            "国债":"CGB",
@@ -74,7 +73,7 @@ Num_dict= {"中债":"CB",
            "加权平均":"ma"
            }
 def modify_dict():
-    conn = pymysql.connect(user=user, password=password, host=db_ip, db=db_name, charset='utf8')
+    conn = pymysql.connect(user=user, password=password, host=db_ip, db=db_name,port=port, charset='utf8')
     cursor = conn.cursor()
     try:
         cursor.execute(
@@ -123,7 +122,7 @@ def modify_single_index(index):
                                .replace("年","Y")  .replace("月","M")\
                                .replace("天","D")  .replace("个","")\
                                .replace("曲线","").replace("(","") \
-                               .replace("周", "W").replace("隔夜", "ON") \
+                               .replace("周", "W").replace("隔夜", "ON")
 
         elif "(" not in index_list[1] and ":" in index_list[1]:
             str_body = index_list[1].split(":")
@@ -164,11 +163,11 @@ def modify_single_index(index):
         str_body = str_body.replace("+", "Plus").replace("-", "Minus") \
             .replace("年", "Y").replace("月", "M") \
             .replace("天", "D").replace("个", "").replace("贷款", "Loan").replace("定存", "FD") \
-            .replace("周", "W").replace("隔夜", "OV")
+            .replace("周", "W").replace("隔夜", "ON").replace("O/N","ON")
 
     eng_name = str_body.replace("__","_")
     #插入数据
-    conn = pymysql.connect(user=user, password=password, host=db_ip, db=db_name, charset='utf8')
+    conn = pymysql.connect(user=user, password=password, host=db_ip, db=db_name,port=port, charset='utf8')
     cursor = conn.cursor()
     sql = "update dict set eng_name=%s ,data_type=%s where name =%s"
     val = (eng_name,data_type,index_ori)
