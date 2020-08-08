@@ -1,10 +1,6 @@
 # -*- coding:utf-8 -*-
 import pymysql
-import sys
-import plotly
 import pandas as pd
-reload(sys)
-sys.setdefaultencoding('utf-8')
 pd.set_option('display.max_columns', None)
 
 #全局变量

@@ -177,7 +177,7 @@ def modify_single_index(index):
         conn.commit()
     except pymysql.Error as e:
         print(e.args[0], e.args[1])
-    cursor.close()
+    cursor.close()  
     conn.close()
 if __name__ == '__main__':
     modify_dict()

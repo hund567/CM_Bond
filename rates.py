@@ -13,13 +13,13 @@ pd.set_option('display.max_columns',None)
 from sqlalchemy import create_engine
 from sqlalchemy.types import NVARCHAR, Float, Integer
 import pymysql
-from WindPy import w
-w.start()
+# from WindPy import w
+# w.start()
 from mapping import view_create
 from mapping import chn_view_create
-import sys
-reload(sys)
-sys.setdefaultencoding('utf-8')
+# import sys
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 def get_rate_from_wind(bond_type):
     #1.先判断表是否存在，若没有直接创建
@@ -70,7 +70,7 @@ def get_rate_from_wind(bond_type):
             df[id] = singledata
         insert_db(df, table_name)
     else:
-        print "duplicate tables exist"
+        print("duplicate tables exist")
 
 
 def insert_db(df, table_name):
@@ -80,9 +80,9 @@ def insert_db(df, table_name):
     engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+":"+str(port)+"/"+db_name, encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=False, dtype=dtypedict, if_exists='append')
-        print " update successful"
+        print(" update successful")
     except:
-        print "Error to inert,see the detail"
+        print("Error to inert,see the detail")
 
 
 def mapping_df_types(df):
@@ -149,6 +149,6 @@ if __name__ == '__main__':
                      "SHIBOR":"SHIBOR"
                    }
     for each in bond_type:
-        get_rate_from_wind(each)
+        # get_rate_from_wind(each)
         view_create(dict_bond_type[each])
         chn_view_create(each)
