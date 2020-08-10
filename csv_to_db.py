@@ -117,10 +117,20 @@ def name2df_net_incr_bond(filename):
     '''
     输入excel名称列表，输出整理完毕的dataframe供拼接
     '''
-    for sheet_num in range(0,3):
-        labels=[u"buy",u"sell",u"net"]
-        label = labels[sheet_num]
-        data = pd.read_excel(path_general+filename, sheet_name=sheet_num, skiprows=4, nrows=120,
+
+    xl = pd.ExcelFile(path_general+filename)
+    sheet_name_list = xl.sheet_names
+
+    for i in range(0,3):
+        sheet_name = sheet_name_list[i]
+        if "机构买入" in sheet_name:
+            label = "buy"
+        elif "机构卖出" in sheet_name:
+            label = "sell"
+        elif "机构净买入" in sheet_name:
+            label = "net"
+        print (label,sheet_name)
+        data = pd.read_excel(path_general+filename, sheet_name=sheet_name, skiprows=4, nrows=120,
                              index_col=[0, 1], column_col=[0, 1])
         time = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
 
