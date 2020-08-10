@@ -10,7 +10,9 @@ pd.set_option('display.max_columns',None)
 from sqlalchemy import create_engine
 from sqlalchemy.types import NVARCHAR, Float, Integer
 import pymysql
-
+# import sys
+# reload(sys)
+# sys.setdefaultencoding('utf-8')
 
 #这个函数就是对表头重命名
 def double2Chn(name,value = 1):
@@ -121,16 +123,22 @@ def name2df_net_incr_bond(filename):
     xl = pd.ExcelFile(path_general+filename)
     sheet_name_list = xl.sheet_names
 
+
     for i in range(0,3):
         sheet_name = sheet_name_list[i]
-        if "机构买入" in sheet_name:
+        if u"机构买入" in sheet_name:
             label = "buy"
-        elif "机构卖出" in sheet_name:
+        elif u"机构卖出" in sheet_name:
             label = "sell"
-        elif "机构净买入" in sheet_name:
+        elif u"机构净买入" in sheet_name:
             label = "net"
-        print (label,sheet_name)
-        data = pd.read_excel(path_general+filename, sheet_name=sheet_name, skiprows=4, nrows=120,
+
+        # 返回第一个非空行号
+        data_pre = pd.read_excel(path_general + filename, sheet_name=sheet_name,nrows=120)
+        data_pre = data_pre.dropna(axis=0, how='all', thresh=None, subset=None, inplace=False)
+        head_line_num  = data_pre.index[0]
+        skiprows = 3+int(head_line_num)
+        data = pd.read_excel(path_general+filename, sheet_name=sheet_name, skiprows=skiprows, nrows=120,
                              index_col=[0, 1], column_col=[0, 1])
         time = [dateutil.parser.parse(filename2date(filename)).date()] * len(data)
 
@@ -171,10 +179,10 @@ def name2df_net_incr_bond(filename):
         # 检查表是否存在，若不存在直接创建表
         engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
                        encoding='utf-8')
-        tablecheck_sql = "show tables like \"" + table_name + "\""
+        tablecheck_sql = u"show tables like \"" + table_name + "\""
         tablecheck_result = engine.execute(tablecheck_sql).rowcount
         if tablecheck_result != 0:
-            sql = u"select * from " + table_name + " where 日期=\"" + str(check_time) + "\"" +" and 交易类型=\"" + label + "\""
+            sql = u"select * from " + table_name + u" where 日期=\"" + str(check_time) + u"\"" +u" and 交易类型=\"" + label + u"\""
             check_result = engine.execute(sql).rowcount
             if check_result != 0:
                 print(filename+",this data has already been inserted")
@@ -325,16 +333,16 @@ def insert_db(df, table_name,csv_name):
             if "int" in str(j):
                 dtypedict.update({i: Integer()})
         return dtypedict
-
     dtypedict = mapping_df_types(df)
 
-    engine =  create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
-                       encoding='utf-8')
+    sql_insert = 'mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name
+    engine =  create_engine(sql_insert,encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=True, dtype=dtypedict, if_exists='append')
         print(csv_name+" update successful")
-    except:
-        print("Error to inert,see the detail")
+    except Exception as e:
+        print("Error to insert,see the detail below:")
+        print(e)
 
 
 
@@ -346,8 +354,8 @@ if __name__ == '__main__':
     db_name = 'guanc'
     port = 10059
     #文件路径
-    # path_general = "C:\Users\Administrator\Desktop\data_csv\\"
-    path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
+    path_general = "C:\\Users\Administrator\Desktop\data_csv\\"
+    # path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
     #数据库创建判断
     conn = pymysql.connect(user=user, password=password, host=db_ip, port=port,charset='utf8')
     cur = conn.cursor()
@@ -362,18 +370,17 @@ if __name__ == '__main__':
 
     for each in filename_list:
         # each =  each.decode(encoding="gb2312", errors="strict")
-        if "质押" in each:
+        if u"质押" in each:
             for i in range(1,4):
                 name2df_repo(each,i)
-        if "现券市场" in each:
+        if u"现券市场" in each:
             name2df_net_incr_bond(each)
-        if "信用拆借" in each:
+        if u"信用拆借" in each:
             for j in range(1, 3):
                 name2df_IB(each,j)
-        if "现券清洗" in each:
+        if u"现券清洗" in each:
             name2df_trans_bond(each)
-        else:
-            print("this table is not considered.")
+
 
 
 
