@@ -33,7 +33,7 @@ def view_create(table_name):
     rename_str = rename_str[:-1]
 
     #创建view
-    view_sql = "create view " + table_name +"  as (select date, " + \
+    view_sql = "create view " + table_name +"_eng  as (select date, " + \
                rename_str + " from " + table_name + ")"
     try:
         cursor.execute(view_sql)

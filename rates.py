@@ -1,6 +1,5 @@
 # -*- coding:utf-8 -*-
 import pandas as pd
-import numpy as np
 from pandas import Series, DataFrame
 import datetime as dt
 import re
@@ -13,8 +12,8 @@ pd.set_option('display.max_columns',None)
 from sqlalchemy import create_engine
 from sqlalchemy.types import NVARCHAR, Float, Integer
 import pymysql
-# from WindPy import w
-# w.start()
+from WindPy import w
+w.start()
 from mapping import view_create
 from mapping import chn_view_create
 # import sys
