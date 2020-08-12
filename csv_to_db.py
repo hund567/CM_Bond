@@ -354,8 +354,8 @@ if __name__ == '__main__':
     db_name = 'guanc'
     port = 10059
     #文件路径
-    path_general = "C:\\Users\Administrator\Desktop\data_csv\\"
-    # path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
+    # path_general = "C:\\Users\Administrator\Desktop\data_csv\\"
+    path_general = "/Users/hund567/Desktop/code_pycharm/CMB_BOND/data/"
     #数据库创建判断
     conn = pymysql.connect(user=user, password=password, host=db_ip, port=port,charset='utf8')
     cur = conn.cursor()
