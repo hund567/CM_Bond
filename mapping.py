@@ -52,7 +52,7 @@ def chn_view_create(chn_table_name):
                       "口行债": "EXIM",
                       "农发债": "ADB",
                       "国债": "CGB",
-                      "国开债": "SGB",
+                      "国开债": "SDB",
                       "地方政府债": "LGB",
                       "中短期票据": "MTN",
                       "美元债": "USDbond",
@@ -64,7 +64,8 @@ def chn_view_create(chn_table_name):
                       "地方债": "LGB",
                       "农发行债": "ADB",
                       "商业银行": "CB",
-                      "SHIBOR": "SHIBOR"
+                      "SHIBOR": "SHIBOR",
+                      "ExchRepo": "ExchRepo"
                       }
     table_name = dict_bond_type[chn_table_name]
     conn = pymysql.connect(user=user, password=password, host=db_ip,db=db_name,port=port, charset='utf8')

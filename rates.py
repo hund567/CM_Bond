@@ -55,10 +55,15 @@ def get_rate_from_wind(bond_type):
             df = pd.DataFrame()
             df["date"] = winddata.Times
             df["date"] = pd.to_datetime(df['date'])
+
             if  winddata.Times[-1] >= start_time:
-                for id, singledata in zip(winddata.Codes, winddata.Data[0]):
+                for id, singledata in zip(winddata.Codes, winddata.Data):
                     df[id] = singledata
                 insert_db(df,table_name)
+            else:
+                print("no need to insert!")
+        else:
+            print("Data today has already been updated.")
 
     elif tablecheck_result == 0:
         start_time = "1990-01-01"
@@ -70,6 +75,64 @@ def get_rate_from_wind(bond_type):
         insert_db(df, table_name)
     else:
         print("duplicate tables exist")
+
+
+#ExchRepo的单独处理
+def get_rate_from_wind_exchrepo():
+    #1.先判断表是否存在，若没有直接创建
+    #2.查看表的最新更新日期，没有默认按照1990. 从wind中提取数据并直接做插入处理
+    eng_table_name = "ExchRepo"
+    engine = create_engine('mysql+pymysql://' + user + ":" + password + "@" + db_ip + ":" + str(port) + "/" + db_name,
+                           encoding='utf-8')
+
+    id_sql = "SELECT id,eng_name FROM dict WHERE data_type=\"bond_rate\" AND dict.name REGEXP '^[A-RT-Z]'  ORDER BY dict.index ASC"
+    ids = engine.execute(id_sql).fetchall()
+    id_list=[]
+    eng_name_list = []
+    for each in ids:
+        id_list.append(each[0])
+        eng_name_list.append(each[1])
+
+    today = datetime.datetime.today().date()
+    end_time = datetime.datetime.today().date()
+
+    table_name = eng_table_name
+    tablecheck_result = engine.execute("show tables like \"" + table_name + "\"").rowcount
+    if tablecheck_result != 0:
+        time_sql = "select date from "+ table_name +" t order by date DESC limit 1"
+        if engine.execute(time_sql).rowcount == 1:
+            latest_mark_time = engine.execute(time_sql).fetchall()[0][0]
+            start_time = latest_mark_time + datetime.timedelta(days=1)
+
+        else:
+            start_time = "1990-01-01"
+
+        if latest_mark_time < today:
+            winddata = w.edb(id_list, start_time, today)
+            df = pd.DataFrame()
+            df["date"] = winddata.Times
+            df["date"] = pd.to_datetime(df['date'])
+
+            if  winddata.Times[-1] >= start_time:
+                for id, singledata in zip(winddata.Codes, winddata.Data):
+                    df[id] = singledata
+                insert_db(df,table_name)
+            else:
+                print("no need to insert!")
+        else:
+            print("Data today has already been updated.")
+
+    elif tablecheck_result == 0:
+        start_time = "1990-01-01"
+        winddata = w.edb(id_list, start_time, today)
+        df = pd.DataFrame()
+        df["date"] = winddata.Times
+        for id, singledata in zip(winddata.Codes, winddata.Data):
+            df[id] = singledata
+        insert_db(df, table_name)
+    else:
+        print("duplicate tables exist")
+
 
 
 def insert_db(df, table_name):
@@ -133,7 +196,7 @@ if __name__ == '__main__':
                    "口行债":"EXIM",
                    "农发债":"ADB",
                    "国债":"CGB",
-                   "国开债":"SGB",
+                   "国开债":"SDB",
                     "地方政府债":"LGB",
                    "中短期票据":"MTN",
                    "美元债":"USDbond",
@@ -148,6 +211,10 @@ if __name__ == '__main__':
                      "SHIBOR":"SHIBOR"
                    }
     for each in bond_type:
-        # get_rate_from_wind(each)
-        view_create(dict_bond_type[each])
-        chn_view_create(each)
+        get_rate_from_wind(each)
+        # view_create(dict_bond_type[each])
+        # chn_view_create(each)
+    #专门针对ExchRepo进行处理
+    get_rate_from_wind_exchrepo()
+    # view_create("ExchRepo")
+    # chn_view_create("ExchRepo")
