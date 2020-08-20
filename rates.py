@@ -14,8 +14,8 @@ from sqlalchemy.types import NVARCHAR, Float, Integer
 import pymysql
 from WindPy import w
 w.start()
-from mapping import view_create
-from mapping import chn_view_create
+from mapping import view_create,ma_view_create
+from mapping import chn_view_create,ma_chn_view_create
 # import sys
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
@@ -212,9 +212,10 @@ if __name__ == '__main__':
                    }
     for each in bond_type:
         get_rate_from_wind(each)
-        # view_create(dict_bond_type[each])
-        # chn_view_create(each)
+        # view_create(dict_bond_type[each],"rates")
+        # chn_view_create(each,"rates")
+        ma_view_create(each,"rates")
     #专门针对ExchRepo进行处理
     get_rate_from_wind_exchrepo()
-    # view_create("ExchRepo")
-    # chn_view_create("ExchRepo")
+    # view_create("ExchRepo","rates")
+    # chn_view_create("ExchRepo","rates")

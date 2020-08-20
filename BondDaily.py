@@ -811,7 +811,6 @@ def stack_term(data):
     layout = go.Layout(yaxis2=dict(overlaying='y',side='right'),barmode = 'stack',legend = dict(x=1.1,y=1,font=dict(family='sans-serif',size=16),traceorder='normal')) # 设置图例
     fig = go.Figure(lst, layout=layout)
     fig.update_layout(title=titles_term(data))
-    print("aaaa")
     fig.show()   
 
 
@@ -1053,7 +1052,7 @@ stack_cross('data18')
 
 # In[27]:
 
-
+from IPython import get_ipython
 get_ipython().system('jupyter nbconvert BondDaily.ipynb --template toc2')
 
 

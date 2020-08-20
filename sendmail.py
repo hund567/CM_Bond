@@ -4,7 +4,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
-
+import datetime
 
 
 def sendmail(file_path,sender,receivers):
@@ -15,13 +15,14 @@ def sendmail(file_path,sender,receivers):
 
     # 创建一个带附件的实例
     message = MIMEMultipart()
-    message['From'] = Header("菜鸟教程", 'utf-8')
-    message['To'] = Header("测试", 'utf-8')
-    subject = 'Python SMTP 邮件测试'
+    today = datetime.datetime.today().date()
+    print(today)
+    # message['From'] = Header(str(today)+"债券市场综合报表", 'utf-8')
+    subject = str(today)+"债券市场综合报表"
     message['Subject'] = Header(subject, 'utf-8')
 
     # 邮件正文内容
-    message.attach(MIMEText('这是菜鸟教程Python 邮件发送测试……', 'plain', 'utf-8'))
+    # message.attach(MIMEText('这是菜鸟教程Python 邮件发送测试……', 'plain', 'utf-8'))
 
     # 构造附件1，传送当前目录下的 test.txt 文件
 
