@@ -16,7 +16,6 @@ def sendmail(file_path,sender,receivers):
     # 创建一个带附件的实例
     message = MIMEMultipart()
     today = datetime.datetime.today().date()
-    print(today)
     # message['From'] = Header(str(today)+"债券市场综合报表", 'utf-8')
     subject = str(today)+"债券市场综合报表"
     message['Subject'] = Header(subject, 'utf-8')
