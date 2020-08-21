@@ -1,2 +1,2 @@
 echo jupyter nbconvert --execute  --ExecutePreprocessor.enabled=True --ExecutePreprocessor.timeout=600  --to html C:\Users\hund567\Desktop\BondDaily-v2.ipynb|%windir%\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy ByPass -NoExit -Command "& 'C:\ProgramData\Anaconda3\shell\condabin\conda-hook.ps1' ; conda activate 'C:\ProgramData\Anaconda3' "
-pause
+python sendmail.py
