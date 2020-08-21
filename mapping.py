@@ -7,10 +7,9 @@ pd.set_option('display.max_columns', None)
 user = 'root'
 password = 'Welcome123'
 db_ip = "cdb-3gsotx9q.cd.tencentcdb.com"
-db_name = 'rates'
 port = 10059
 
-def view_create(table_name):
+def view_create(table_name,db_name):
     conn = pymysql.connect(user=user, password=password, host=db_ip,db=db_name,port=port, charset='utf8')
     cursor = conn.cursor()
     try:
@@ -43,7 +42,7 @@ def view_create(table_name):
     except pymysql.Error as e:
         print(e.args[0], e.args[1])
 
-def chn_view_create(chn_table_name):
+def chn_view_create(chn_table_name,db_name):
     dict_bond_type = {"质押式回购": "REPO",
                       "同业拆借": "interbanklending",
                       "信用拆借": "DepositInistlending",
@@ -100,5 +99,42 @@ def chn_view_create(chn_table_name):
     except pymysql.Error as e:
         print(e.args[0], e.args[1])
 
+def ma_view_create(table_name,db_name):
+    conn = pymysql.connect(user=user, password=password, host=db_ip, db=db_name, port=port, charset='utf8')
+    cursor = conn.cursor()
+    try:
+        cursor.execute("select column_name from information_schema.columns \
+                            where table_name=\"" + table_name + "\" and data_type != \'date\'")
+    except pymysql.Error as e:
+        print(e.args[0], e.args[1])
+    columns = cursor.fetchall()
+    columns_str = ""
+    rename_str = ""
+    for column in columns:
+        columns_str = columns_str + "," + column[0]
+        try:
+            cursor.execute("select eng_name from dict where id=\"" + column[0] + "\"")
+            name = cursor.fetchall()[0][0]
+            rename_str += column[0] + " \"" + name + "\","
+        except pymysql.Error as e:
+            print(e.args[0], e.args[1])
+            break
+    rename_str = rename_str[:-1]
+
+    # 创建view
+    view_sql = "create view " + table_name + "_eng  as (select date, " + \
+               rename_str + " from " + table_name + ")"
+    try:
+        cursor.execute(view_sql)
+        cursor.close()
+        conn.commit()
+        conn.close()
+    except pymysql.Error as e:
+        print(e.args[0], e.args[1])
+
+
+def ma_chn_view_create():
+    print("aa")
+    
 if __name__ == '__main__':
     view_create("国债利率")
