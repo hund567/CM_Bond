@@ -28,7 +28,8 @@ def sendmail(file_path,sender,receivers):
     att1 = MIMEText(open(file_path, 'rb').read(), 'base64', 'utf-8')
     att1["Content-Type"] = 'application/octet-stream'
     # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
-    att1["Content-Disposition"] = 'attachment; filename="BondDaily-v2.html"'
+    filename = str(today)+"BondDaily.html"
+    att1["Content-Disposition"] = 'attachment; filename='+filename
     message.attach(att1)
 
     # # 构造附件2，传送当前目录下的 runoob.txt 文件
