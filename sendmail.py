@@ -28,7 +28,8 @@ def sendmail(file_path,sender,receivers):
     att1 = MIMEText(open(file_path, 'rb').read(), 'base64', 'utf-8')
     att1["Content-Type"] = 'application/octet-stream'
     # 这里的filename可以任意写，写什么名字，邮件中显示什么名字
-    filename = str(today)+" BondDaily.html"
+    filename = str(today)+"_BondDaily.html"
+    print(filename)
     att1["Content-Disposition"] = 'attachment; filename='+filename
     message.attach(att1)
 
@@ -47,6 +48,8 @@ def sendmail(file_path,sender,receivers):
     except smtplib.SMTPException as e:
         print("Error: 无法发送邮件")
         print(e)
+
+
 if __name__ == '__main__':
     sender = 'hund567@163.com'
     receivers = ['hund567@163.com',"227362424@qq.com","wingyylr@163.com","linyingyingalm@cmbchina.com"]  # 接收邮件，可设置为你的QQ邮箱或者其他邮箱 并且注意receivers是个list里面可以放多个目标邮箱地址
