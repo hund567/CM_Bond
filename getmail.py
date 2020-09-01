@@ -6,11 +6,11 @@ import email
 import sys
 
 #邮件服务器的地址 imap 协议
-mailServer = "mail.fullgoal.com.hk"
+mailServer = "imap.qq.com"
 #邮件服务用户名
-mailUser= "navinfo@fullgoal.com.hk"
+mailUser= "768910353@qq.com"
 #邮件服务密码
-mailPassWord = "whnHSJ127261"
+mailPassWord = "tawirsvlhuypbeih"
 
 def guess_charset(msg):
     # 先从msg对象获取编码:
@@ -32,7 +32,6 @@ def parseEmail(msg, base_save_path):
         if not part.is_multipart(): # 这里要判断是否是multipart，是的话，里面的数据是无用的，至于为什么可以了解mime相关知识。
             contentType=part.get_content_type()
             filename=part.get_filename()
-            print filename
             if filename:
                 #下面的三行代码只是为了解码象=?gbk?Q?=CF=E0=C6=AC.rar?=这样的文件名
                 h = email.Header.Header(filename)
