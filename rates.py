@@ -61,7 +61,7 @@ def get_rate_from_wind(bond_type):
                 #处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
                 Null_check_result = df.isnull().any(axis=1)
                 if True in Null_check_result.values:
-                    print("Null value in the data，see the details below:")
+                    print("Null value in the data of " + dict_reverse[table_name] + "，see the details below:")
                     print(df[df.isnull().T.any().T])
                 df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
                 insert_db(df,table_name)
@@ -80,7 +80,7 @@ def get_rate_from_wind(bond_type):
         # 处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
         Null_check_result = df.isnull().any(axis=1)
         if True in Null_check_result.values:
-            print("Null value in the data，see the details below:")
+            print("Null value in the data of " + dict_reverse[table_name] + "，see the details below:")
             print(df[df.isnull().T.any().T])
         df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
         insert_db(df, table_name)
@@ -130,7 +130,7 @@ def get_rate_from_wind_exchrepo():
                 # 处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
                 Null_check_result = df.isnull().any(axis=1)
                 if True in Null_check_result.values:
-                    print("Null value in the data，see the details below:")
+                    print("Null value in the data of " + dict_reverse[table_name] + "，see the details below:")
                     print(df[df.isnull().T.any().T])
                 df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
                 insert_db(df,table_name)
@@ -149,8 +149,9 @@ def get_rate_from_wind_exchrepo():
             # 处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
         Null_check_result = df.isnull().any(axis=1)
         if True in Null_check_result.values:
-            print("Null value in the data，see the details below:")
+            print("Null value in the data of "+ dict_reverse[table_name]+"，see the details below:")
             print(df[df.isnull().T.any().T])
+
         df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
         insert_db(df, table_name)
     else:
@@ -165,7 +166,7 @@ def insert_db(df, table_name):
     engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+":"+str(port)+"/"+db_name, encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=False, dtype=dtypedict, if_exists='append')
-        print(table_name + " update successfully")
+        print(dict_reverse[table_name] + " update successfully")
     except:
         print("Error to inert,see the detail")
 
@@ -233,6 +234,7 @@ if __name__ == '__main__':
                    "商业银行":"CB",
                      "SHIBOR":"SHIBOR"
                    }
+    dict_reverse = {val:key for key,val in dict_bond_type.items()}
     for each in bond_type:
         get_rate_from_wind(each)
         # view_create(dict_bond_type[each],"rates")
