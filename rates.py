@@ -55,10 +55,15 @@ def get_rate_from_wind(bond_type):
             df = pd.DataFrame()
             df["date"] = winddata.Times
             df["date"] = pd.to_datetime(df['date'])
-
             if  winddata.Times[-1] >= start_time:
                 for id, singledata in zip(winddata.Codes, winddata.Data):
                     df[id] = singledata
+                #处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
+                Null_check_result = df.isnull().any(axis=1)
+                if True in Null_check_result.values:
+                    print("Null value in the data，see the details below:")
+                    print(df[df.isnull().T.any().T])
+                df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
                 insert_db(df,table_name)
             else:
                 print("no need to insert!")
@@ -72,6 +77,12 @@ def get_rate_from_wind(bond_type):
         df["date"] = winddata.Times
         for id, singledata in zip(winddata.Codes, winddata.Data):
             df[id] = singledata
+        # 处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
+        Null_check_result = df.isnull().any(axis=1)
+        if True in Null_check_result.values:
+            print("Null value in the data，see the details below:")
+            print(df[df.isnull().T.any().T])
+        df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
         insert_db(df, table_name)
     else:
         print("duplicate tables exist")
@@ -116,6 +127,12 @@ def get_rate_from_wind_exchrepo():
             if  winddata.Times[-1] >= start_time:
                 for id, singledata in zip(winddata.Codes, winddata.Data):
                     df[id] = singledata
+                # 处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
+                Null_check_result = df.isnull().any(axis=1)
+                if True in Null_check_result.values:
+                    print("Null value in the data，see the details below:")
+                    print(df[df.isnull().T.any().T])
+                df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
                 insert_db(df,table_name)
             else:
                 print("no need to insert!")
@@ -129,6 +146,12 @@ def get_rate_from_wind_exchrepo():
         df["date"] = winddata.Times
         for id, singledata in zip(winddata.Codes, winddata.Data):
             df[id] = singledata
+            # 处理完了之后我们判断是不是有空值，如果有空值，我们抛出这一行的空值，并直接删除这一行
+        Null_check_result = df.isnull().any(axis=1)
+        if True in Null_check_result.values:
+            print("Null value in the data，see the details below:")
+            print(df[df.isnull().T.any().T])
+        df.dropna(axis=0, how='any', thresh=None, subset=None, inplace=True)
         insert_db(df, table_name)
     else:
         print("duplicate tables exist")
@@ -142,7 +165,7 @@ def insert_db(df, table_name):
     engine = create_engine('mysql+pymysql://'+user+":"+password+"@"+db_ip+":"+str(port)+"/"+db_name, encoding='utf-8')
     try:
         df.to_sql(table_name, con=engine, index=False, dtype=dtypedict, if_exists='append')
-        print(" update successful")
+        print(table_name + " update successfully")
     except:
         print("Error to inert,see the detail")
 
@@ -214,7 +237,7 @@ if __name__ == '__main__':
         get_rate_from_wind(each)
         # view_create(dict_bond_type[each],"rates")
         # chn_view_create(each,"rates")
-        ma_view_create(each,"rates")
+        # ma_view_create(each,"rates")
     #专门针对ExchRepo进行处理
     get_rate_from_wind_exchrepo()
     # view_create("ExchRepo","rates")
