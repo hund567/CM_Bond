@@ -5,7 +5,6 @@ import imaplib
 from email.header import decode_header
 import email
 mailServer = "imap.sina.com"
-
 mailUser= "potatooo43@sina.com"
 mailPassWord = "15dd9bdca5326b72"
 
@@ -65,7 +64,7 @@ def main():
     imapServer = imaplib.IMAP4_SSL(mailServer, 993)
     imapServer.login(mailUser, mailPassWord)
     imapServer.select()
-    base_save_path = '/Users/xxx/PycharmProjects/'
+    base_save_path = 'C:\\Users\\Administrator\\\Desktop\\excel\\'
     # list items on server
     #resp, items = imapServer.search(None, "ALL")   #all Message.
    #Seen   unSeen
@@ -82,6 +81,7 @@ def main():
 
         content, attachment_files  = parseEmail(mail_message, base_save_path)
         print(attachment_files)
+        imapServer.store(i,'+FLAGS','\\Seen') #读取的文件设置为已读
 
     imapServer.close()
     imapServer.logout()

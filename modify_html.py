@@ -29,7 +29,7 @@ def modify_html(html_file):
             i = i + 1
 
         new_tag = find_content.new_tag("pre")
-        new_tag.string = ""
+        new_tag.string = "detail"
         # `replace_with` 方法来替换掉
         find_content.find_all('pre')[tag_num].replace_with(new_tag)
 
@@ -39,4 +39,4 @@ def modify_html(html_file):
 
 
 if __name__ =="__main__":
-    modify_html("/Users/hund567/Downloads/2020-09-11_BondDaily.html")
+    modify_html("C:\\Users\\Administrator\\Desktop\\html\\BondDaily-v4.html")
